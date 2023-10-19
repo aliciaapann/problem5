@@ -1,6 +1,6 @@
 ; Replace current # with A and check number from tape 2
-q0 # 0 A 0 R R zero
-q0 # 1 A 1 R R one
+0 # 0 A 0 R R zero
+0 # 1 A 1 R R one
 
 ; If 0 is read, read FIRST bit after # to find valid transition
 zero 0 * 0 * R * 0_bit2
@@ -9,6 +9,15 @@ zero 1 * 1 * L * mark_hash0
 hash0 * * * * R * zero
 
 mark_hash0 # * X * L * find_A
+
+; If 1 is read, read FIRST bit after # to find valid transition
+one * * * * R * 1_bit2
+1_bit2 1 * 1 * L * 1_bit1
+1_bit1 * * * * L * mark_hash1
+1_bit2 0 * 0 * R * hash1
+hash1 * * * * R * one
+
+mark_hash1 # * X * L * find_A
 
 ; Find A to go to start of the current state you are in (replace A when you find it)
 
@@ -66,11 +75,11 @@ reset_hash_r H * # * R * reset_hash_r
 reset_hash_r _ * _ * L * find_F
 reset_hash_r * * * * R * reset_hash_r
 
-find_F F * # * * * q0
+find_F F * # * * * 0
 find_F * * * * L * find_F
 
 ; If we reach end of string on tape 2, check if we are in final state (q_n)
-q0 *_ *_ ** check_final_state
+0 * _ * _ * * check_final_state
 
 check_final_state # * # * R * check_final_hash2
 check_final_state * * * * R * check_final_state
