@@ -1,0 +1,88 @@
+; Replace current # with A and check number from tape 2
+0 # 0 A 0 R R zero
+0 # 1 A 1 R R one
+
+; If 0 is read, read FIRST bit after # to find valid transition
+zero 0 * 0 * R * 0_bit2
+zero 1 * 1 * L * mark_hash0
+0_bit2 * * * * R * hash0
+hash0 * * * * R * zero
+
+mark_hash0 # * X * L * find_A
+
+; If 1 is read, read FIRST bit after # to find valid transition
+one * * * * R * 1_bit2
+1_bit2 1 * 1 * L * 1_bit1
+1_bit1 * * * * L * mark_hash1
+1_bit2 0 * 0 * R * hash1
+hash1 * * * * R * one
+
+mark_hash1 # * X * L * find_A
+
+; Find A to go to start of the current state you are in (replace A when you find it)
+
+find_A A * * * R * count_hash
+find_A * * * * L * find_A
+
+; Count # between A and X and for each #, count by adding in C to the end of tape 1 (replace # with H)
+count_hash # * H * R * add_C
+count_hash X * X * L * find_state
+count_hash * * * * R * count_hash
+
+; Add C to end of tape 1
+add_C _ * C * L * find_H 
+add_C * * * * R * add_C
+find_H H * H * R * count_hash
+find_H * * * * L * find_H
+
+; Once all # are replaced (X is reached), go to beginning and replace A with #
+; A and Q both mark states
+find_state _ * * * R * find_double_hash
+find_state A * # * L * find_state
+find_state Q * Q * R * find_double_hash
+find_state * * * * L * find_state 
+
+
+; Find first ## and check end for how many more ## to replace (replace ## with Q to mark state)
+find_double_hash # * # * R * check_hash2
+find_double_hash * * * * R * find_double_hash
+check_hash2 # * Q * R * remove_C
+check_hash2 * * * * R * find_double_hash
+
+; remove C from end of tape 2
+remove_C C * _ * L * find_state
+remove_C _ * _ * L * mark_next_state
+remove_C * * * * R * remove_C
+
+; find rightmost Q and mark this next state to transition to
+mark_next_state Q * F * L * reset_hash_l
+mark_next_state * * * * L * mark_next_state
+
+; Once F has been marked, reset all other letters to the left of F to #
+reset_hash_l A * # * L * reset_hash_l
+reset_hash_l Q * # * L * reset_hash_l
+reset_hash_l X * # * L * reset_hash_l
+reset_hash_l H * # * L * reset_hash_l
+reset_hash_l _ * _ * R * reset_hash_r
+reset_hash_l * * * * L * reset_hash_l
+
+; Also make sure all letters to the right of F have been reset
+; From the end, move back and find F
+reset_hash_r A * # * R * reset_hash_r
+reset_hash_r Q * # * R * reset_hash_r
+reset_hash_r X * # * R * reset_hash_r
+reset_hash_r H * # * R * reset_hash_r
+reset_hash_r _ * _ * L * find_F
+reset_hash_r * * * * R * reset_hash_r
+
+find_F F * # * * * 0
+find_F * * * * L * find_F
+
+; If we reach end of string on tape 2, check if we are in final state (q_n)
+0 * _ * _ * * check_final_state
+
+check_final_state # * # * R * check_final_hash2
+check_final_state * * * * R * check_final_state
+check_final_hash2 # * # * R * halt-reject
+check_final_hash2 _ * _ * * * halt-accept
+check_final_hash2 * * * * R * check_final_state
