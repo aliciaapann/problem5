@@ -6,7 +6,9 @@
 zero 0 * 0 * R * 0_bit2
 zero 1 * 1 * L * mark_hash0
 0_bit2 * * * * R * hash0
-hash0 * * * * R * zero
+hash0 # * # * R * check_double_hash0
+check_double_hash0 # * # * * * halt-reject
+check_double_hash0 * * * * * * zero
 
 mark_hash0 # * X * L * find_A
 mark_hash0 A * A * * * stay_in_state
@@ -17,7 +19,9 @@ one * * * * R * 1_bit2
 1_bit2 1 * 1 * L * 1_bit1
 1_bit1 * * * * L * mark_hash1
 1_bit2 0 * 0 * R * hash1
-hash1 * * * * R * one
+hash1 # * * * R * check_double_hash1
+check_double_hash1 # * # * * * halt-reject
+check_double_hash1 * * * * * * one
 
 mark_hash1 # * X * L * find_A
 mark_hash1 # * X * L * find_A
@@ -90,5 +94,13 @@ find_F * * * * L * find_F
 check_final_state # * # * R * check_final_hash2
 check_final_state * * * * R * check_final_state
 check_final_hash2 # * # * R * halt-reject
-check_final_hash2 _ * _ * * * halt-accept
+check_final_hash2 _ * _ * L L check_accept
 check_final_hash2 * * * * R * check_final_state
+
+; Need to make sure if we are in the last state we stay in this state
+check_accept # * # * L * check_accept
+check_accept 1 1 1 1 * * halt-accept
+check_accept 0 1 0 1 * * halt-reject
+check_accept * 0 * 0 L * check_accept0
+check_accept0 1 0 1 0 * * halt-accept
+check_accept0 0 0 0 0 * * halt-reject
