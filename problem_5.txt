@@ -9,8 +9,10 @@ zero 1 * 1 * L * mark_hash0
 hash0 * * * * R * zero
 
 mark_hash0 # * X * L * find_A
+mark_hash0 A * A * * * stay_in_state
 
 ; If 1 is read, read FIRST bit after # to find valid transition
+one # * * * * * halt-reject
 one * * * * R * 1_bit2
 1_bit2 1 * 1 * L * 1_bit1
 1_bit1 * * * * L * mark_hash1
@@ -18,6 +20,10 @@ one * * * * R * 1_bit2
 hash1 * * * * R * one
 
 mark_hash1 # * X * L * find_A
+mark_hash1 # * X * L * find_A
+mark_hash1 A * A * * * stay_in_state
+
+stay_in_state A * # * * * 0
 
 ; Find A to go to start of the current state you are in (replace A when you find it)
 
