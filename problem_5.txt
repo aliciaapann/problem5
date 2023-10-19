@@ -97,11 +97,3 @@ check_final_state * * * * R * check_final_state
 check_final_hash2 # * # * R * halt-reject
 check_final_hash2 _ * _ * L * halt-accept
 check_final_hash2 * * * * R * check_final_state
-
-; Need to make sure if we are in the last state we stay in this state
-check_accept # * # * L * check_accept
-check_accept 1 1 1 1 * * halt-accept
-check_accept 0 1 0 1 * * halt-reject
-check_accept * 0 * 0 L * check_accept0
-check_accept0 1 0 1 0 * * halt-accept
-check_accept0 0 0 0 0 * * halt-reject
